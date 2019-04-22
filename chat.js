@@ -30,20 +30,35 @@ function loginMe(){
     location.reload();
   }
 }
+function notifyTyping() { 
+  socket.emit('notifyTyping', myUser, myFriend);
+}
 
 // function to call when sent a message from chatbox
 
-function submit(){
-  let message = {};
-  let text = document.getElementById('m').value();
-  let messageParentElement = document.getElementById('messages')
+function createMsgElement(text) {
+  
+}
 
+function submitFn(e){
+  console.log(e.previousSibling.value)
+  console.log("message send")
+  let message = {};
+  let text = e.previousSibling.value;
+  console.log(text)
+  let messageParentElement = document.getElementById('messages')
   if (text != '') {
+   // create the message DOM element
+    let msg = document.createElement("LI")
+    let msgText = document.createTextNode(text)
+    msg.appendChild(msgText)
+    msg.classList.add('chatMessageRight')
+
     message.text = text;
     message.sender = myUser.id;
     message.receiver = myFriend.id;
 
-    messageParentElement.appendChild('<li class="chatMessageRight">' + message.text + '</li>')
+    messageParentElement.appendChild(msg)
 
     if(allChatMessages[myFriend.id] != undefined) {
       allChatMessages[myFriend.id].push(message);
@@ -52,7 +67,9 @@ function submit(){
     }
     socket.emit('chatMessage', message);
   }
-  document.getElementById('m').val('').focus();
+  e.previousSibling.value = ''
+
+  document.getElementById('m').focus();
   return false;
 }
 
@@ -60,11 +77,15 @@ function appendChatMessage(message){
   if (message.receiver == myUser.id && message.sender == myFriend.id) {
     playNewMessageAudio();
     let cssClass = (message.sender == myUser.id) ? 'chatMessageRight' : 'chatMessageLeft';
-    document.getElementById('messages').appendChild('<li class="' + cssClass + '">' + message.text + '</li>')
+    let msg = document.createElement("LI")
+    let msgText = document.createTextNode(message.text)
+    msg.appendChild(msgText)
+    msg.classList.add('chatMessageRight')
+    document.getElementById('messages').appendChild(msg)
   }
   else {
     playNewMessageNotificationAudio();
-    updateChatNotificationCount(message.sender);
+    // updateChatNotificationCount(message.sender);
   }
 
   if (allChatMessages[message.sender] != undefined) {
@@ -72,6 +93,20 @@ function appendChatMessage(message){
   } else {
     allChatMessages[message.sender] = new Array(message);
   }
+}
+
+// Load all messages for the selected user
+function loadChatBox(messages) {
+  document.getElementById('messages').innerHTML = '';
+  messages.forEach(function(message){
+    let msg = document.createElement("LI")
+    let msgText = document.createTextNode(message.text)
+    msg.appendChild(msgText)
+    
+    let cssClass = (message.sender == myUser.id) ? 'chatMessageRight' : 'chatMessageLeft';
+    msg.classList.add(cssClass)
+    document.getElementById('messages').appendChild(msg)
+  });
 }
 
 // plays audio when new message arrives on selected chatbox
@@ -87,27 +122,43 @@ function playNewMessageNotificationAudio() {
 
 // update chat notification count
 
-function updateChatNotificationCount(userId) {
-  let count = (chatNotificationCount[userId] == undefined) ? 1 : chatNotificationCount[userId] + 1;
-  chatNotificationCount[userId] = count;
-  let label = document.getElementsByTagName('label')[0]
-  document.getElementById(`${userId} ${label.chatNotificationCount}`).innerHTML = count;
-  document.getElementById(`${userId} ${label.chatNotificationCount}`).display= '';
-}
+// function updateChatNotificationCount(userId) {
+//   let count = (chatNotificationCount[userId] == undefined) ? 1 : chatNotificationCount[userId] + 1;
+//   chatNotificationCount[userId] = count;
+//   let label = document.getElementsByTagName('label')[0]
+//   document.getElementById(`${userId} ${label.chatNotificationCount}`).innerHTML = count;
+//   document.getElementById(`${userId} ${label.chatNotificationCount}`).display= '';
+// }
 
-function selectUserChatBox(element, userId, userName) {
+function selectUserChatBox(e) {
+  document.getElementById('form').style.display = 'block'
+  document.getElementById('messages').style.display = 'block';
+  userId = e.target.id
+
   myFriend.id = userId;
-  myFriend.name = userName;
+  myFriend.name = e.target.innerText;
 
-  document.getElementById('form').display = '';
-  document.getElementById('messages').display = '';
-  document.getElementById(onlineUsers).getElementsByTagName('li').removeClass('active');
-  element.addClass('active');
-  document.getElementById('notifyTyping').text('');
-  document.getElementById('m').value('').focus();
+  
+  onlineUsers = Array.from(document.getElementById('onlineUsers').getElementsByTagName('li'))
+  onlineUsers.forEach((element) =>{
+    element.classList.remove('active')
+  })
+  
+  
+  if (e.target.classList){
+    e.target.classList.add('active');
+  }
+  else {
+    e.target.className += ' ' + 'active';
+  }
+
+  // element.classList.add('active');
+  document.getElementById('notifyTyping').textContent = '';
+  document.getElementById('m').style.display = '';
+  document.getElementById('m').focus();
 
   // resest chat message count to 0
-  clearChatNotificationCount(userId);
+  // clearChatNotificationCount(userId);
 
   // load all chat messages for a selected user
   if(allChatMessages[userId] != undefined) {
@@ -116,6 +167,13 @@ function selectUserChatBox(element, userId, userName) {
     document.getElementById('messages').innerHTML = ''
   }
 }
+
+// function clearChatNotificationCount(userId) {
+//   chatNotificationCount[userId] = 0;
+//   let label = document.getElementsByTagName('label')[0]
+//   document.getElementById(`${userId} ${label.chatNotificationCount}`).display = 'none'
+//   // $('#' + userId + ' label.chatNotificationCount').hide();
+// } 
 
 // EVENT LISTENERS AND EMITTERS
 
@@ -145,7 +203,7 @@ socket.on('onlineUsers', function(onlineUsers){
       if(myUser.id != user.id){
         myFriend.id = user.id;
         myFriend.name = user.name;
-        document.getElementById('form').display = '';
+        document.getElementById('form').style.display = '';
       }
     })
   }
@@ -154,14 +212,14 @@ socket.on('onlineUsers', function(onlineUsers){
     if(user.id != myUser.id){
       let activeClass = (user.id == myFriend.id) ? 'active' : '';
       usersList += `
-        <li id="${user.id}" class="${activeClass}" onclick="selectUserChatBox(this, ${user.id}, ${user.name})">
+        <li id="${user.id}" class="${activeClass}">
           <a href="javascript:void(0)"> ${user.name} </a>
-          <label class="chatNotificationCount"></label>
         </li>
       `;
     }
   })
   document.getElementById('onlineUsers').innerHTML = usersList
+  document.getElementById('onlineUsers').parentNode.addEventListener('click', selectUserChatBox)
 })
 
 //listen to chatmessage event to receive a message sent by a friend
@@ -172,6 +230,6 @@ socket.on('chatMessage', function(message){
 
 socket.on('userIsDisconnected', function(userId){
   delete allChatMessages[userId];
-  document.getElementById('form').display = 'none'
-  document.getElementById('messages').display = 'none';
+  document.getElementById('form').style.display = 'none'
+  document.getElementById('messages').style.display = 'none';
 })

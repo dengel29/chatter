@@ -5,8 +5,9 @@ let path = require('path')
 
 let onlineUsers = []
 
-app.use(express.static(path.join(__dirname)));
-app.get('/', function(req, res){ 
+app.get('/', function(req, res){
+  let express = require('express');
+  app.use(express.static(path.join(__dirname)));
   res.sendFile(path.join(__dirname, '../chatter', 'index.html'));
 })
 

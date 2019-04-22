@@ -5,8 +5,8 @@ body { font-size: 16px; font-family: "Lucida Grande",Verdana,Arial,"Bitstream Ve
 .onlineUsersContainer { width: 20%; float: left; min-height: 869px; background-color: rgb(225, 203, 245); }
 .onlineUsersContainer ul li { list-style-type: none; cursor: pointer; margin: 0; padding: 12px; box-shadow: 0px 2px 8px #C28FF1; border-radius: 10px; }
 .onlineUsersContainer ul li::before { content: "• "; color: #2D9F0B; font-size: 20px; font-weight: bold; padding: 5px; }
-.onlineUsersContainer ul li.active { background: rgba(211, 176, 243, 0.92); }
-.onlineUsersContainer ul li:hover { background: rgb(214, 187, 239) }
+.onlineUsersContainer ul li.active { background: rgba(242, 240, 243, 0.92); }
+/* .onlineUsersContainer ul li:hover { background: rgb(214, 187, 239) } */
 .onlineUsersContainer li a { color: #6C0DC3; text-decoration:none; }
 .chatContainer { width: 80%; float: left; min-height: 869px; border-left: 3px solid #B57DE8; }
 form { background: #2E8E12; padding: 3px; position: fixed; bottom: 0; width: 80%; }

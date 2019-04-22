@@ -8,14 +8,15 @@
 </head>
 <body> 
   <div class="onlineUsersContainer">
-      <div class="userInfo">Welcome <label id="myName">Guest</label> !!</div>
+      <div class="userInfo">Welcome <label id="myName">Guest</label></div>
       <div><ul id="onlineUsers"></ul></div>
   </div>
   <div class="chatContainer">
     <ul id="messages"></ul>
     <span id="notifyTyping"></span>
-    <form id="form" action="" onsubmit="return submit();" > 
-        <input type="hidden" id="user" value="" /><input id="m" autocomplete="off" onkeyup="notifyTyping();" placeholder="Type yer message here.." /><input type="submit" id="button" value="Send"/> 
+    <form id="form" onsubmit=""> 
+        <input type="hidden" id="user" value="" />
+        <input id="m" autocomplete="off" onkeyup="notifyTyping()" placeholder="Type yer message here.." /><input type="button" id="button" value="Send" onclick="submitFn(this)"/> 
     </form>
   </div>
   <script src="chat.js"></script>
