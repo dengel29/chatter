@@ -30,7 +30,7 @@ function notifyMe() {
   // Let's check whether notification permissions have already been granted
   else if (Notification.permission === "granted") {
     // If it's okay let's create a notification
-    var notification = new Notification("Hi there!");
+    var notification = new Notification("Notifications are enabled for this page");
   }
 
   // Otherwise, we need to ask the user for permission
@@ -132,7 +132,10 @@ function appendChatMessage(message){
     msg.classList.add(cssClass)
     document.getElementById('messages').appendChild(msg);
     if (Notification.permission == "granted") {
-      let options = { body: message.text}; 
+      let options = { 
+        body: message.text,
+        ttl: 3
+      }; 
       new Notification(`Message from ${message.senderName}:`, options)
     }
   }
