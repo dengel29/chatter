@@ -1,19 +1,60 @@
-// client side functionality, referenced in index.html
-
 let socket = io();
 let allChatMessages = [];
 let chatNotificationCount = [];
-let myUser = {}
+let myUser = {};
 let myFriend = {};
+
+
+// IndexedDB Code
+const request = indexedDB.open("chats")
+
+request.onupgradeneeded = e => {
+  console.log('upgrade called')
+}
+
+request.onsuccess = e => {
+  console.log('success')
+}
+
+request.onerror = e => {
+  console.log('error')
+}
+
+// Notification request
+function notifyMe() {
+  // Let's check if the browser supports notifications
+  if (!("Notification" in window)) {
+    alert("This browser does not support system notifications");
+  }
+
+  // Let's check whether notification permissions have already been granted
+  else if (Notification.permission === "granted") {
+    // If it's okay let's create a notification
+    var notification = new Notification("Hi there!");
+  }
+
+  // Otherwise, we need to ask the user for permission
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission(function (permission) {
+      // If the user accepts, let's create a notification
+      if (permission === "granted") {
+        var notification = new Notification("Hi there!");
+      }
+    });
+  }
+
+  // Finally, if the user has denied notifications and you 
+  // want to be respectful there is no need to bother them any more.
+}
 
 //Document ready function called automatically on page load
 
-
-
   if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading"){
     loginMe();
+    notifyMe();
   } else {
     document.addEventListener('DOMContentLoaded', loginMe)
+    notifyMe();
   }
 
 
@@ -24,12 +65,19 @@ function loginMe(){
 
   if (/([^\s])/.test(person) && person != null && person != ""){
     console.log("new user!")
-    socket.emit('newUser', person);
-    document.title = person;
+    // const dbPromise = idb.open('users', 1, upgradeDb => {
+    //   keyValStore = upgradeDB.createObjectStore('users');
+    //   keyValStore.put()
+    // })
+ 
+      socket.emit('newUser', person);
+      document.title = person;
   } else {
     location.reload();
   }
 }
+
+
 function notifyTyping() { 
   socket.emit('notifyTyping', myUser, myFriend);
 }
@@ -52,12 +100,13 @@ function submitFn(e){
     let msg = document.createElement("LI")
     let msgText = document.createTextNode(text)
     msg.appendChild(msgText)
-    msg.classList.add('chatMessageRight')
-
+    
+    
+    message.senderName = myUser.name
     message.text = text;
     message.sender = myUser.id;
     message.receiver = myFriend.id;
-
+    (message.sender == myUser.id) ? msg.classList.add('chatMessageRight') : msg.classList.add('chatMessageLeft')
     messageParentElement.appendChild(msg)
 
     if(allChatMessages[myFriend.id] != undefined) {
@@ -80,8 +129,12 @@ function appendChatMessage(message){
     let msg = document.createElement("LI")
     let msgText = document.createTextNode(message.text)
     msg.appendChild(msgText)
-    msg.classList.add('chatMessageRight')
-    document.getElementById('messages').appendChild(msg)
+    msg.classList.add(cssClass)
+    document.getElementById('messages').appendChild(msg);
+    if (Notification.permission == "granted") {
+      let options = { body: message.text}; 
+      new Notification(`Message from ${message.senderName}:`, options)
+    }
   }
   else {
     playNewMessageNotificationAudio();
@@ -198,7 +251,7 @@ socket.on('notifyTyping', function(sender, recipient){
 socket.on('onlineUsers', function(onlineUsers){
   console.log(onlineUsers)
   let usersList = '';
-  if(onlineUsers.length > 1){
+  if(onlineUsers){
     onlineUsers.forEach(function(user){
       if(myUser.id != user.id){
         myFriend.id = user.id;
@@ -229,7 +282,7 @@ socket.on('chatMessage', function(message){
 });
 
 socket.on('userIsDisconnected', function(userId){
-  delete allChatMessages[userId];
+  // delete allChatMessages[userId];
   document.getElementById('form').style.display = 'none'
   document.getElementById('messages').style.display = 'none';
 })

@@ -14,9 +14,9 @@
   <div class="chatContainer">
     <ul id="messages"></ul>
     <span id="notifyTyping"></span>
-    <form id="form" onsubmit=""> 
+    <form id="form" onsubmit="return false;"> 
         <input type="hidden" id="user" value="" />
-        <input id="m" autocomplete="off" onkeyup="notifyTyping()" placeholder="Type yer message here.." /><input type="button" id="button" value="Send" onclick="submitFn(this)"/> 
+        <input id="m" autocomplete="off" onkeyup="notifyTyping()" placeholder="Type yer message here.." /><input type="submit" id="button" value="Send" onclick="submitFn(this)"/> 
     </form>
   </div>
   <script src="chat.js"></script>

@@ -26,7 +26,6 @@ io.on('connection', function(socket){
 
   // Listen to newUser event sent by client
   socket.on('newUser', function(user) {
-    console.log("gonna push a new user into theonline users array")
     let newUser = {id: socket.id, name: user}
     onlineUsers.push(newUser);
     io.to(socket.id).emit('newUser', newUser);
